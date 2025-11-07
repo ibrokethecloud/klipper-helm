@@ -23,7 +23,7 @@ helm_update() {
 	# No current version and status, safe to install
 	if [[ "${INSTALLED_VERSION}" =~ ^(|null)$ ]] && [[ "${STATUS}" =~ ^(|null)$ ]]; then
 		echo "Installing ${HELM} chart" >> ${TERM_LOG}
-		${HELM} "$@" ${NAME_ARG} ${NAME} "${CHART}" ${CA_FILE_ARG} ${INSECURE_TLS_ARG} ${PLAIN_HTTP_ARG} ${TIMEOUT_ARG} ${VALUES}
+		${HELM} "$@" ${NAME_ARG} ${NAME} "${CHART}" ${CA_FILE_ARG} ${INSECURE_TLS_ARG} ${PLAIN_HTTP_ARG} ${SKIP_SCHEMA_VALIDATION_ARG} ${TIMEOUT_ARG} ${VALUES}
 		exit
 	fi
 
@@ -40,7 +40,7 @@ helm_update() {
 			echo "Retrying upgrade of ${HELM} chart" >> ${TERM_LOG}
 			echo "Retrying upgrade of ${NAME}"
 			shift 1
-			${HELM} upgrade "$@" ${NAME} "${CHART}" ${CA_FILE_ARG} ${INSECURE_TLS_ARG} ${PLAIN_HTTP_ARG} ${TIMEOUT_ARG} ${VALUES}
+			${HELM} upgrade "$@" ${NAME} "${CHART}" ${CA_FILE_ARG} ${INSECURE_TLS_ARG} ${PLAIN_HTTP_ARG} ${SKIP_SCHEMA_VALIDATION_ARG} ${TIMEOUT_ARG} ${VALUES}
 			exit
 		else
 			STATUS=failed
@@ -55,7 +55,7 @@ helm_update() {
 		echo "Upgrading ${HELM} chart" >> ${TERM_LOG}
 		echo "Upgrading ${NAME}"
 		shift 1
-		${HELM} upgrade "$@" ${NAME} "${CHART}" ${CA_FILE_ARG} ${INSECURE_TLS_ARG} ${PLAIN_HTTP_ARG} ${TIMEOUT_ARG} ${VALUES}
+		${HELM} upgrade "$@" ${NAME} "${CHART}" ${CA_FILE_ARG} ${INSECURE_TLS_ARG} ${PLAIN_HTTP_ARG} ${SKIP_SCHEMA_VALIDATION_ARG} ${TIMEOUT_ARG} ${VALUES}
 		exit
 	fi
 
@@ -67,7 +67,7 @@ helm_update() {
 			echo Deleted
 			# Try installing now that we've uninstalled
 			echo "Installing ${HELM} chart" >> ${TERM_LOG}
-			${HELM} "$@" ${NAME_ARG} ${NAME} "${CHART}" ${CA_FILE_ARG} ${INSECURE_TLS_ARG} ${PLAIN_HTTP_ARG} ${TIMEOUT_ARG} ${VALUES}
+			${HELM} "$@" ${NAME_ARG} ${NAME} "${CHART}" ${CA_FILE_ARG} ${INSECURE_TLS_ARG} ${PLAIN_HTTP_ARG} ${SKIP_SCHEMA_VALIDATION_ARG} ${TIMEOUT_ARG} ${VALUES}
 			exit
 		else
 			echo "Release status is '${STATUS}' and failure policy is '${FAILURE_POLICY}', not 'reinstall'; waiting for operator intervention" >> ${TERM_LOG}
@@ -78,7 +78,7 @@ helm_update() {
 
 	# No special status handling necessary, do whatever we were asked to do
 	echo "Installing ${HELM} chart" >> ${TERM_LOG}
-	${HELM} "$@" ${NAME_ARG} ${NAME} "${CHART}" ${CA_FILE_ARG} ${INSECURE_TLS_ARG} ${PLAIN_HTTP_ARG} ${TIMEOUT_ARG} ${VALUES}
+	${HELM} "$@" ${NAME_ARG} ${NAME} "${CHART}" ${CA_FILE_ARG} ${INSECURE_TLS_ARG} ${PLAIN_HTTP_ARG} ${SKIP_SCHEMA_VALIDATION_ARG} ${TIMEOUT_ARG} ${VALUES}
 }
 
 helm_repo_init() {
@@ -137,6 +137,7 @@ CA_FILE_ARG=""
 INSECURE_TLS_ARG=""
 PLAIN_HTTP_ARG=""
 TIMEOUT_ARG=""
+SKIP_SCHEMA_VALIDATION_ARG=""
 PASS_CREDENTIALS_ARG=""
 JQ_CMD='"\(.[0].chart),\(.[0].status)"'
 
@@ -178,6 +179,10 @@ fi
 
 if [[ "${PLAIN_HTTP}" == "true" ]]; then
   PLAIN_HTTP_ARG="--plain-http"
+fi
+
+if [[ "${SKIP_SCHEMA_VALIDATION}" == "true" ]]; then
+  SKIP_SCHEMA_VALIDATION_ARG="--skip-schema-validation"
 fi
 
 if [[ -n "${TIMEOUT}" ]]; then
